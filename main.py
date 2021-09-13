@@ -4,7 +4,7 @@ from config import BOT_TOKEN, ROOT
 from aiogram import Bot, Dispatcher, executor, types
 from register import registration, add_user_info
 from victorina import victorina_messenging
-from users import User
+from users import User, get_user_by_id
 
 logging.basicConfig(level=logging.INFO)
 
@@ -29,7 +29,20 @@ async def send_welcome(message: types.Message):
 
 @dp.message_handler(commands=['registration'])
 async def accept_register(message: types.Message):
-    answer = registration(message.from_user)
+    user_id = message.from_user.id
+    if get_user_by_id(user_id):
+        answer = "Уже зарегистрирован. Для начала викторины введи /victorina"
+    else:
+        user = User(
+            user_id,
+            message.from_user.first_name,
+            dict(message.from_user).get('last_name'),
+            dict(message.from_user).get('login')
+        ).register_user()
+        if user:
+            answer = "Чтобы поучаствовать в викторине также необходимо ввести свой номер телефона\nОтправь свой телефон, набрав сообщение такого вида +375-29-111-11-11\nНеобходимо, чтобы телефон начинался именно с '+375'. То есть в  викторине могут участвовать только жители Беларуси. Телефон нужен для связи с победителями"
+        else:
+            answer = "Не удалось зарегистрировать. Попробуй снова \registration"
     await message.reply(answer)
 
 
@@ -39,14 +52,18 @@ async def victorina(message: types.Message):
     await message.reply(answer)
 
 
-@dp.message_handler(lambda message: message.text.startswith('del') or message.text.startswith('tel'))
-async def add_info(message: types.Message):
-    if message.text.startswith('del'):
-        answer_message = "Удалил"
-    else:
-        answer_message = "Позвонил"
+@dp.message_handler(commands=['admin108'])
+async def admin_register(message: types.Message):
+    answer = victorina_messenging()
+    await message.reply(answer)
 
-    await message.answer(answer_message)
+
+@dp.message_handler(lambda message: message.text.startswith('+375'))
+async def add_info(message: types.Message):
+    try:
+        await message.answer("OK")
+    except:
+        await message.answer("Error")
 
 
 @dp.message_handler()

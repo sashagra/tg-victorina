@@ -8,7 +8,7 @@ create table users(
 
 create table questions(
     id integer primary key,
-    question_text varchar(3000),
+    question_text text,
     day date
 );
 
