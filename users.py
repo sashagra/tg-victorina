@@ -1,4 +1,4 @@
-from db import insert, select_by_keys
+from db import insert, select_by_keys, delete
 
 
 def get_user_by_id(user_id):
@@ -6,6 +6,10 @@ def get_user_by_id(user_id):
         'users',
         ["id", "firstname", "lastname", "login", "phone"],
         {'id': str(user_id)})
+
+
+def del_user_by_id(user_id):
+    return delete('users', user_id)
 
 
 class User:
@@ -24,8 +28,6 @@ class User:
             "login":        self.login,
             "phone":        self.phone
         }
-        # try:
+
         insert('users', user_info)
         return user_info
-        # except:
-        #     return False

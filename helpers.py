@@ -2,8 +2,6 @@ import datetime
 from typing import List, NamedTuple, Optional
 import pytz
 
-s = dict("ddd",)
-
 
 def _get_now_formatted() -> str:
     """Возвращает текущую дату время строкой"""

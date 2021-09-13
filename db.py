@@ -50,14 +50,12 @@ def select_by_keys(table: str, columns: List[str],  *args: Dict,):
             search_strings.append(f"{key}='{arg[key]}'")
 
     query = f"select {columns_joined} from {table} where {' and '.join(search_strings)}"
-    print(query)
     cursor.execute(query)
     rows = cursor.fetchall()
     return _to_objects_list(rows, columns)
 
 
 def delete(table: str, row_id: int) -> None:
-    row_id = int(row_id)
     cursor.execute(f"delete from {table} where id={row_id}")
     conn.commit()
 
