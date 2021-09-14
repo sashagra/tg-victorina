@@ -8,6 +8,12 @@ conn = sqlite3.connect(os.path.join("db", "victorina.db"))
 cursor = conn.cursor()
 
 
+def update(table: str, data: Tuple,  row_id: int):
+    cursor.execute(
+        f"update {table} set {data[0]}='{data[1]}' where id={row_id}")
+    conn.commit()
+
+
 def insert(table: str, column_values: Dict):
     columns = ', '.join(column_values.keys())
     values = [tuple(column_values.values())]
@@ -42,7 +48,7 @@ def fetchall(table: str, columns: List[str]) -> List[Tuple]:
     return _to_objects_list(rows, columns)
 
 
-def select_by_keys(table: str, columns: List[str],  *args: Dict,):
+def select_by_keys(table: str, columns: List[str],  *args: Dict):
     columns_joined = ", ".join(columns)
     search_strings = []
     for arg in args:

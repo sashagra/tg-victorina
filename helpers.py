@@ -1,5 +1,4 @@
 import datetime
-from typing import List, NamedTuple, Optional
 import pytz
 
 
@@ -18,6 +17,8 @@ def _get_now_datetime() -> datetime.datetime:
     tz = pytz.timezone("Europe/Minsk")
     now = datetime.datetime.now(tz)
     return now
+
+
 
 
 string_time = {

@@ -4,6 +4,7 @@ from config import BOT_TOKEN, ROOT
 from aiogram import Bot, Dispatcher, executor, types
 from register import registration, add_user_info
 from victorina import victorina_messenging
+from db import update
 from users import User, get_user_by_id, del_user_by_id
 
 logging.basicConfig(level=logging.INFO)
@@ -47,7 +48,7 @@ async def accept_register(message: types.Message):
         if message.text.startswith('/admin108'):
             login = "ADMIN"
         else:
-            login = dict(message.from_user).get('login')
+            login = dict(message.from_user).get('username')
 
         user = User(
             user_id,
@@ -80,6 +81,8 @@ async def delete(message: types.Message):
 @dp.message_handler(lambda message: message.text.startswith('+375'))
 async def add_info(message: types.Message):
     try:
+        # TODO проверить есть ли уже телефон
+        update('users', ('phone', message.text), message.from_user.id)
         await message.answer("Добавил телефон. /victorina для начала")
     except:
         await message.answer("Error")
@@ -95,6 +98,7 @@ async def answer_handler(message: types.Message):
 
 @dp.message_handler()
 async def echo(message: types.Message):
+    print(message)
     await message.answer("Не понимаю эту команду или сообщение. Пришли что-то понтное. Например, /victorina")
 
 
