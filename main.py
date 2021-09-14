@@ -12,8 +12,6 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(bot)
 
-test_users = [504623509, 1124367342, 1659236479]
-
 
 @dp.message_handler(commands=['start', 'help'])
 async def send_welcome(message: types.Message):
@@ -66,6 +64,7 @@ async def accept_register(message: types.Message):
 
 @dp.message_handler(commands=['victorina'])
 async def victorina(message: types.Message):
+    # TODO проверить есть ли уже телефон
     user_id = message.from_user.id
     exsisted_user = get_user_by_id(user_id)
     answer = victorina_messenging(exsisted_user)
@@ -98,7 +97,6 @@ async def answer_handler(message: types.Message):
 
 @dp.message_handler()
 async def echo(message: types.Message):
-    print(message)
     await message.answer("Не понимаю эту команду или сообщение. Пришли что-то понтное. Например, /victorina")
 
 
