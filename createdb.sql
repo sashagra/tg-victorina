@@ -13,7 +13,7 @@ create table questions(
 );
 
 create table answers(
-    id varchar(255) primary key,
+    id integer primary key,
     answer_text varchar(255),
     question_id integer,
     is_right boolean,

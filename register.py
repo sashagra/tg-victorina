@@ -1,17 +1,17 @@
-# from users import User
+from users import User, get_user_by_id
 
-# {"id": 504623509, "is_bot": false, "first_name": "Александр",
-# "last_name": ".", "username": "tttttws", "language_code": "ru"}
 
-def registration(user):
-    # registrated_users = [504623509, 1124367342, 1659236479]
-    registrated_users = [1124367342, 1659236479]  # from BD
-    if user['id'] not in registrated_users:
+def registration(user_id, first_name, last_name, login):
+    exsisted_user = get_user_by_id(user_id)
+    if exsisted_user:
 
-        return f"Зарегистрировал.\nИмя: {user['first_name']}\nФамилия: {user['last_name']}\nID: {user['id']}"
+        return False
     else:
-        return "Уже зарегистрирован"
+        User(
+            user_id,
+            first_name,
+            last_name,
+            login
+        ).register_user()
 
-
-def add_user_info(key, value):
-    pass
+        return True
