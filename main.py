@@ -3,6 +3,8 @@ import register
 from db import update
 from config import BOT_TOKEN, ROOT, ADMIN
 from aiogram import Bot, Dispatcher, executor, types
+from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.dispatcher import FSMContext
 from victorina.victorina import victorina_messenging
 from users import User, get_user_by_id, del_user_by_id
 
@@ -38,11 +40,34 @@ async def accept_register(message: types.Message):
                                  last_name=dict(message.from_user).get(
                                      'last_name'),
                                  login=dict(message.from_user).get('username'))
-    # TODO запрос номера телефона
+
     if user:
-        return await message.reply("Чтобы поучаствовать в викторине также необходимо ввести свой номер телефона\nОтправь свой телефон, набрав сообщение такого вида +375-29-111-11-11\nНеобходимо, чтобы телефон начинался именно с '+375'. То есть в  викторине могут участвовать только жители Беларуси. Телефон нужен для связи с победителями")
+        keyboard = types.ReplyKeyboardMarkup(
+            resize_keyboard=True, one_time_keyboard=True)
+        keyboard.add(types.KeyboardButton(
+            text="Отправить номер телефона ☎️", request_contact=True))
+        await message.answer("Чтобы завершить регистрацию нажми кнопку ниже, чтобы мы записали номер твоего телефона. В викторине могут участвовать только жители Беларуси, поэтому нужен белорусский номер телефона", reply_markup=keyboard)
     else:
         return await message.reply("Уже зарегистрирован в викторине. Для начала введи или кликни команду /victorina")
+
+
+@dp.message_handler(content_types=types.ContentTypes.CONTACT)
+async def get_telephone_number(message: types.Message, state: FSMContext):
+    user_telephone_num = message.contact.phone_number
+    if user_telephone_num.startswith('+375'):
+        update('users', ('phone', user_telephone_num), message.from_user.id)
+        await message.reply("Поздравляем! Ты зарегистрировался в викторине. Для начала введи или кликни команду /victorina")
+    else:
+        await message.reply("Ты не можешь участвовать в викторине, потому что номер телефона не начинается с +375. Викторина только для участников из беларуси. Попробуй зарегистрироваться с другого телеграм аккаунта")
+
+
+# @dp.message_handler(lambda message: message.text.startswith('+375'))
+# async def add_info(message: types.Message):
+#     try:
+#         update('users', ('phone', message.text), message.from_user.id)
+#         await message.answer(f"Добавил/обновил телефон. Проверь правильность и введи заново или команду /victorina для начала/продолжения викторины\n Твой номер: {message.text}")
+#     except:
+#         await message.answer("Error")
 
 
 @dp.message_handler(commands=['admin108', 'stat', 'users'])
@@ -65,15 +90,6 @@ async def victorina(message: types.Message):
 async def delete(message: types.Message):
     del_user_by_id(message.from_user.id)
     await message.reply("Вы удалили себя из базы данных. /registration для регистрации")
-
-
-@dp.message_handler(lambda message: message.text.startswith('+375'))
-async def add_info(message: types.Message):
-    try:
-        update('users', ('phone', message.text), message.from_user.id)
-        await message.answer(f"Добавил/обновил телефон. Проверь правильность и введи заново или команду /victorina для начала/продолжения викторины\n Твой номер: {message.text}")
-    except:
-        await message.answer("Error")
 
 
 @dp.message_handler(lambda message: message.text.startswith('/otvet'))
