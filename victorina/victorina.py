@@ -1,5 +1,6 @@
 from questions import get_question_by_id
 from users import get_user_by_id
+from buttons import inline as inline_buttons
 
 
 def victorina_messenging(user_id, message=None):
@@ -14,6 +15,7 @@ def victorina_messenging(user_id, message=None):
         answers = ""
         for answer in question["answers"]:
             answers += f"- {answer['answer_text']} /otvet{question['question']['id']}_{answer['id']}\n\n"
+
         return f"Начинаем викторину.\n{question['question']['question_text']}\n\n{answers}"
     elif user and message:
         question_id, answer_id = message.split("/otvet")[1].split("_")
