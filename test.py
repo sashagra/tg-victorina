@@ -1,7 +1,7 @@
 from questions import Question, get_question_by_id
 import json
 
-with open('questions.json') as f:
+with open('questions_final.json') as f:
     questions = json.load(f)
 
 for q in questions:

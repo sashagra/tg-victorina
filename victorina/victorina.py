@@ -1,22 +1,25 @@
 from questions import get_question_by_id
 from users import get_user_by_id
+from buttons import register_btn, inline as inline_btn
 
 
 def victorina_messenging(user_id, message=None):
     """Посылает вопрос, принимает и обрабатывает ответ"""
     user = get_user_by_id(user_id)
     if not user or not user["phone"]:
-        return "Чтобы поучаствовать в викторине нужно зарегистрироваться /registration"
+        return ("Чтобы участвовать в викторине нужно зарегистрироваться.", register_btn)
 
-    if user and not message:  # задает первый неотвеченый вопрос
+    if user and not message:
         # TODO сделать цикл по вопросам
-        question = get_question_by_id(1)
-        answers = ""
-        for answer in question["answers"]:
-            answers += f"- {answer['answer_text']} /otvet{question['question']['id']}_{answer['id']}\n\n"
-        return f"Начинаем викторину.\n{question['question']['question_text']}\n\n{answers}"
+        # TODO сделать разделение на вопросы с одним ответом и с множественным выбором
+        question = get_question_by_id(2)
+        btn_answers = inline_btn(
+            [(answer['answer_text'], f"victorina-otvet-{question['question']['id']}_{answer['id']}") for answer in question["answers"]])
+
+        return (f"Вопрос №{question['question']['id']}.\n{question['question']['question_text']}", btn_answers)
     elif user and message:
-        question_id, answer_id = message.split("/otvet")[1].split("_")
+        question_id, answer_id = message.split(
+            "victorina-otvet-")[1].split("_")
         question = get_question_by_id(int(question_id))
         user_answer = None
         for answer in question["answers"]:
@@ -25,6 +28,7 @@ def victorina_messenging(user_id, message=None):
                 break
 
         is_right = "верный" if user_answer["is_right"] else "не верный"
-        return f"Ответ принял. Вопрос №{question_id} Этот ответ: {user_answer['answer_text']} {is_right}"
+        # TODO Запись ответа
+        return (f"Ответ принял. Вопрос №{question_id} Этот ответ: {user_answer['answer_text']} {is_right}", None)
     else:
-        return "Чтобы участвовать в викторине нужно зарегистрироваться. Команда /registration"
+        return ("Чтобы участвовать в викторине нужно зарегистрироваться.", register_btn)
