@@ -1,5 +1,6 @@
 from db import insert, select_by_keys, fetchall
 from helpers import string_time
+from answers import add_answers, get_user_answers
 
 
 class Question:
@@ -22,22 +23,31 @@ class Question:
         return True
 
 
-def add_answers(answers, question_id):
-    for answer in answers:
-        insert('answers', {
-            "answer_text": answer["text"],
-            "question_id": question_id,
-            "is_right": answer["is_right"]
-        })
-
-
-def get_today_questions(day):
-    data = select_by_keys(
+def get_next_question(user_id):
+    today_questions = select_by_keys(
         'questions',
         ['id', 'question_text', 'day'],
         {'day': string_time["today"]()}
     )
-    return data
+    next_question = None
+
+    for question in today_questions:
+        answer = get_user_answers(user_id, {"question_id": question["id"]})
+        if not answer:
+            next_question = question
+            break
+
+    if not next_question:
+        return None
+    answers = select_by_keys(
+        'answers',
+        ['id', 'answer_text', 'question_id', 'is_right'],
+        {'question_id': next_question["id"]})
+
+    return {
+        "question": next_question,
+        "answers": answers
+    }
 
 
 def get_question_by_id(question_id):
@@ -48,12 +58,13 @@ def get_question_by_id(question_id):
     )
     if not question:
         return None
+
     answers = select_by_keys(
         'answers',
         ['id', 'answer_text', 'question_id', 'is_right'],
         {'question_id': question_id}
     )
     return {
-        "answers": answers,
-        "question": question
+        "question": question,
+        "answers": answers
     }

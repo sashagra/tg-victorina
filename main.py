@@ -95,6 +95,11 @@ async def delete(message: types.Message):
     ))
 
 
+@dp.message_handler(lambda message: message.text.startswith('/answers'))
+async def answers(message: types.Message):
+    await message.answer("Смотрим ответы")
+
+
 @dp.message_handler()
 async def echo(message: types.Message):
     reply, reply_markup = victorina_messenging(message.from_user.id)
