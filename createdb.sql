@@ -28,6 +28,5 @@ create table user_answers(
     answers varchar(255),
     answered datetime,
     FOREIGN KEY(user_id) REFERENCES users(id),
-    FOREIGN KEY(question_id) REFERENCES questions(id),
-    FOREIGN KEY(answer_id) REFERENCES answers(id)
+    FOREIGN KEY(question_id) REFERENCES questions(id)
 );

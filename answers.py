@@ -15,7 +15,7 @@ def add_user_answer(user_id: int, question_id: int, answer_id: int):
     insert('user_answers', {
         "user_id": user_id,
         "question_id": question_id,
-        "answer_id": answer_id,
+        "answers": answer_id,
         "answered": string_time["now"]()
     })
 
@@ -23,4 +23,10 @@ def add_user_answer(user_id: int, question_id: int, answer_id: int):
 def get_user_answers(user_id: int, keys: dict):
     keys["user_id"] = user_id
     return select_by_keys("user_answers", [
-        "id", "user_id", "question_id", "answer_id", "answered"], keys)
+        "id", "user_id", "question_id", "answers", "answered"], keys)
+
+
+def is_right_answer(answer_id: int) -> bool:
+    answer = select_by_keys(
+        "answers", ["id", "is_right"], {"id": answer_id})
+    return answer["is_right"]

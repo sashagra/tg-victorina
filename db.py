@@ -48,12 +48,11 @@ def fetchall(table: str, columns: List[str]) -> List[Tuple]:
     return _to_objects_list(rows, columns)
 
 
-def select_by_keys(table: str, columns: List[str],  *args: Dict):
+def select_by_keys(table: str, columns: List[str],  args: Dict):
     columns_joined = ", ".join(columns)
     search_strings = []
-    for arg in args:
-        for key in arg.keys():
-            search_strings.append(f"{key}='{arg[key]}'")
+    for key in args.keys():
+        search_strings.append(f"{key}='{args[key]}'")
 
     query = f"select {columns_joined} from {table} where {' and '.join(search_strings)}"
     cursor.execute(query)
