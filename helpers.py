@@ -12,6 +12,12 @@ def _get_day_formatted() -> str:
     return _get_now_datetime().strftime("%Y-%m-%d")
 
 
+def _get_tomorrow_day_formatted() -> str:
+    """Возвращает сегодняшнюю дату строкой"""
+    tomorrow = _get_now_datetime() + datetime.timedelta(days=1)
+    return tomorrow.strftime("%Y-%m-%d")
+
+
 def _get_now_datetime() -> datetime.datetime:
     """Возвращает сегодняшний datetime с учётом времненной зоны."""
     tz = pytz.timezone("Europe/Minsk")
@@ -19,9 +25,8 @@ def _get_now_datetime() -> datetime.datetime:
     return now
 
 
-
-
 string_time = {
     "now": _get_now_formatted,
-    "today": _get_day_formatted
+    "today": _get_day_formatted,
+    "tomorrow": _get_tomorrow_day_formatted
 }

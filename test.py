@@ -7,5 +7,3 @@ with open('questions_final.json') as f:
 for q in questions:
     question = Question(q["question"], q["day"], q["answers"])
     question.add()
-
-# print(get_question_by_id(2))

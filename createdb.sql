@@ -24,7 +24,9 @@ create table answers(
 create table user_answers(
     id integer primary key,
     user_id integer,
-    answer varchar(255),
+    question_id integer,
+    answers varchar(255),
     answered datetime,
-    FOREIGN KEY(user_id) REFERENCES users(id)
+    FOREIGN KEY(user_id) REFERENCES users(id),
+    FOREIGN KEY(question_id) REFERENCES questions(id)
 );
