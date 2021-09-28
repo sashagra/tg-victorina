@@ -86,20 +86,16 @@ def get_question_by_id(question_id):
 
 
 def is_there_answer(user_id, question_id):
-    question = get_question_by_id(question_id)
     answers = get_user_answers(user_id, {"question_id": question_id})
     if answers:
         if answers["answers"][-2:] == "_0":
-            question["multiple_answers"] = False
-            answers = answers[:-2]
-        answers = answers["answers"].split("_")
+            return True
+        elif answers["answers"][-1:] == "_":
+            return False
+        else:
+            return True
     else:
         return False
-    # может ответов не быть Нон, может быть отдин ответ с айди, может быть ответ с несколькими айди типа 2_3 а может быть ответ, где последний 2_2_0
-    return {
-        "multiple_answers": question["multiple_answers"],
-        "answers": [int(answer) for answer in answers]
-    }
 
 
 def _has_multiple_answers(answers):

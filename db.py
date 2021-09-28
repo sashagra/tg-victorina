@@ -65,6 +65,16 @@ def delete(table: str, row_id: int) -> None:
     conn.commit()
 
 
+def delete_many(table: str, args: Dict):
+    search_strings = []
+    for key in args.keys():
+        search_strings.append(f"{key}='{args[key]}'")
+
+    query = f"delete from {table} where {' and '.join(search_strings)}"
+    cursor.execute(query)
+    conn.commit()
+
+
 def get_cursor():
     return cursor
 
@@ -85,6 +95,7 @@ def check_db_exists():
     if table_exists:
         return
     _init_db()
+    import fill_db
 
 
 check_db_exists()

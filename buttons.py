@@ -17,5 +17,16 @@ def inline(buttons: list):
     return buttons_markup
 
 
+t = 'Привет! 👋'
+
+
+def add_keyboard(btns: list):
+    kb = ReplyKeyboardMarkup(resize_keyboard=True)
+    for btn in btns:
+        button = KeyboardButton(btn)
+        kb.add(button)
+    return kb
+
+
 register_btn = inline([("Регистрация", "registration")])
 victorina_btn = inline([("Начать викторину", "victorina")])

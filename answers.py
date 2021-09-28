@@ -1,4 +1,4 @@
-from db import insert, select_by_keys, fetchall
+from db import insert, select_by_keys, fetchall, update
 from helpers import string_time
 
 
@@ -11,7 +11,7 @@ def add_answers(answers, question_id):  # for question
         })
 
 
-def add_user_answer(user_id: int, question_id: int, answer_id: int):
+def add_user_answer(user_id: int, question_id: int, answer_id: str):
     insert('user_answers', {
         "user_id": user_id,
         "question_id": question_id,
@@ -24,6 +24,10 @@ def get_user_answers(user_id: int, keys: dict):
     keys["user_id"] = user_id
     return select_by_keys("user_answers", [
         "id", "user_id", "question_id", "answers", "answered"], keys)
+
+
+def update_user_answer(answer_id, answer):
+    update("user_answers", ("answers", answer), answer_id)
 
 
 def is_right_answer(answer_id: int) -> bool:

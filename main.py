@@ -27,14 +27,21 @@ async def send_welcome(message: types.Message):
         await bot.send_message(message.from_user.id, "Для регистрации кликни кнопку ниже",   reply_markup=btn.register_btn)
 
 
-@dp.callback_query_handler(lambda c: c.data.startswith('victorina'))
+@dp.callback_query_handler(lambda c: c.data == 'victorina')
 async def victorina(callback_query: types.CallbackQuery):
     user_id = callback_query.from_user.id
-    message = callback_query.data if callback_query.data.startswith(
-        "victorina-answer") else None
-    reply, reply_markup = victorina_messaging(user_id, message=message)
+    # message = callback_query.data if callback_query.data.startswith(
+    #     "victorina-answer") else None
+    reply, reply_markup = victorina_messaging(user_id)
     await bot.answer_callback_query(callback_query.id)
     await bot.send_message(user_id, reply, reply_markup=reply_markup)
+
+
+@dp.message_handler(lambda message: message.text.startswith('Ответ ') or message.text.startswith("Нет правильного В."))
+async def handle_answers(message: types.Message):
+    reply, reply_markup = victorina_messaging(
+        message.from_user.id, message.text)
+    await message.reply(reply, reply_markup=reply_markup)
 
 
 @dp.callback_query_handler(lambda c: c.data == 'registration')
@@ -89,9 +96,7 @@ async def admin(message: types.Message):
 @dp.message_handler(commands=['delete'])  # TODO удалить функцию при запуске
 async def delete(message: types.Message):
     del_user_by_id(message.from_user.id)
-    await message.reply("Вы удалили себя из базы данных",   reply_markup=btn.inline(
-        [("Регистрация", "registration")]
-    ))
+    await message.reply("Вы удалили себя из базы данных",   reply_markup=btn.register_btn)
 
 
 @dp.message_handler(lambda message: message.text.startswith('/answers'))

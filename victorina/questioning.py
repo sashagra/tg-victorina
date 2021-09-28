@@ -1,23 +1,48 @@
-from questions import is_the_questions_tomorrow
-from buttons import inline as inline_btn
+from questions import is_the_questions_tomorrow, get_user_answers, get_next_question
+from answers import update_user_answer
+from buttons import add_keyboard, ReplyKeyboardRemove, register_btn, inline as inline_btn
+
+markers = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣"]
 
 
-def question_message(question):
+def question_message(question, user_answer=None):
 
     if not question:  # если не осталось неотвеченных вопросов
         return _no_questions()
 
-    btns = [(answer['answer_text'],
-             f"victorina-answer-{question['question']['id']}_{answer['id']}") for answer in question["answers"]]
+    btns = [f"Ответ {markers[index]}    {question['question']['id']}_{answer['id']}" for index,
+            answer in enumerate(question["answers"])]
 
     # обработка вопросов с множественным выбором ответа
-    m_text = ""
+    answers_text = ""
     if question["multiple_answers"]:
-        btns.append(("Нет правильного", "victorina-answer-net"))
-        m_text = "(Возможно, правильных ответов несколько)"
-        # return _multy_answers(question)
+        # не добавлять если еще нет ответов
+        if user_answer:
+            answers_arr = user_answer[:-1].split("_")
+            btns = [btn for btn in btns if btn2answer(
+                btn)[1] not in answers_arr]
+            btns.append(f"Нет правильного В.{question['question']['id']}")
+            return "Можно выбрать еще один ответ или 'Нет правильного'", add_keyboard(btns)
+        answers_text += "❗️ Возможно, правильных ответов несколько. За каждый правильный ответ начисляются баллы\n"
+    answers_text += "-------\n"
+    for index, answer in enumerate(question["answers"]):
+        answers_text += f"{markers[index]} {answer['answer_text']}\n\n"
 
-    return f"Вопрос №{question['question']['id']}. {m_text}\n{question['question']['question_text']}", inline_btn(btns)
+    full_question_text = f"❓ Вопрос №{question['question']['id']}\n{question['question']['question_text']}\n" + answers_text
+
+    return full_question_text, add_keyboard(btns)
+
+
+def btn2answer(btn_text):
+    try:
+        answers = btn_text.split("    ")[1].split("_")
+    except IndexError:
+        return None
+    try:
+        question_id, answer_id = answers
+    except ValueError:
+        return None
+    return question_id, answer_id
 
 
 def _no_questions():
@@ -26,4 +51,4 @@ def _no_questions():
     else:
         reply = "Викторина завершена. Скоро будут результаты"
 
-    return reply, None
+    return reply, ReplyKeyboardRemove()
