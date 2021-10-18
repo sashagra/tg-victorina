@@ -20,7 +20,7 @@ def add_user_answer(user_id: int, question_id: int, answer_id: str):
     })
 
 
-def get_user_answers(user_id: int, keys: dict):
+def get_user_answers(user_id: int, keys: dict = {}):
     keys["user_id"] = user_id
     return select_by_keys("user_answers", [
         "id", "user_id", "question_id", "answers", "answered"], keys)
@@ -34,3 +34,18 @@ def is_right_answer(answer_id: int) -> bool:
     answer = select_by_keys(
         "answers", ["id", "is_right"], {"id": answer_id})
     return answer["is_right"]
+
+
+def user_score_compute(user_id):
+    answers = get_user_answers(user_id)
+    score = 0
+    for answer in answers:
+        if answer["answers"].endswith("_0"):
+            multy_answers = answer["answers"][:-2].split("_")
+            for a in multy_answers:
+                if is_right_answer(int(a)):
+                    score += 1
+        else:
+            if is_right_answer(int(answer["answers"])):
+                score += 1
+    return score

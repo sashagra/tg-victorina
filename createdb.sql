@@ -3,7 +3,8 @@ create table users(
     firstname varchar(255),
     lastname varchar(255),
     login varchar(255),
-    phone varchar(255)
+    phone varchar(255),
+    score integer
 );
 
 create table questions(

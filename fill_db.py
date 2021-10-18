@@ -14,7 +14,7 @@ def final_db():
 
 
 def test_db():
-    with open('test_questions.json') as f:
+    with open('questions_final.json') as f:
         questions = json.load(f)
 
     idx = 0
@@ -28,3 +28,4 @@ def test_db():
 
 
 test_db()
+# final_db()

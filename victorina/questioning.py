@@ -4,6 +4,14 @@ from buttons import add_keyboard, ReplyKeyboardRemove, register_btn, inline as i
 
 markers = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣"]
 
+block_answers = {
+    "2021-11-01": "https://telegra.ph/Otvety-i-spravka-po-pervomu-bloku-10-11",
+    "2021-11-02": "https://telegra.ph/Vtoroj-blok-viktoriny-Spravka-o-zhizni-SHrily-Prabhupady-10-14",
+    "2021-11-03": "https://telegra.ph/Vtoroj-blok-viktoriny-Spravka-o-zhizni-SHrily-Prabhupady-10-17",
+    "2021-11-04": "https://telegra.ph/CHetvyortyj-blok-viktoriny-Spravka-o-zhizni-SHrily-Prabhupady-10-17",
+    "2021-11-05": "https://telegra.ph/Pyatyj-blok-viktoriny-Spravka-o-zhizni-SHrily-Prabhupady-10-17"
+}
+
 
 def question_message(question, user_answer=None):
 
@@ -23,7 +31,7 @@ def question_message(question, user_answer=None):
                 btn)[1] not in answers_arr]
             btns.append(f"Нет правильного В.{question['question']['id']}")
             return "Можно выбрать еще один ответ или 'Нет правильного'", add_keyboard(btns)
-        answers_text += "❗️ Возможно, правильных ответов несколько. За каждый правильный ответ начисляются баллы\n"
+        # answers_text += "❗️ Возможно, правильных ответов несколько. За каждый правильный ответ начисляются баллы\n"
     answers_text += "-------\n"
     for index, answer in enumerate(question["answers"]):
         answers_text += f"{markers[index]} {answer['answer_text']}\n\n"
@@ -50,5 +58,5 @@ def _no_questions():
         reply = "На сегодня вопросов больше нет. Продолжение викторины завтра"
     else:
         reply = "Викторина завершена. Скоро будут результаты"
-
-    return reply, ReplyKeyboardRemove()
+    # TODO сделать справку после каждого блока
+    return f"{reply}\n{block_answers['2021-11-03']}", ReplyKeyboardRemove()
