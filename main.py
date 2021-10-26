@@ -37,7 +37,7 @@ async def victorina(callback_query: types.CallbackQuery):
     await bot.send_message(user_id, reply, reply_markup=reply_markup)
 
 
-@dp.message_handler(lambda message: message.text.startswith('Ответ ') or message.text.startswith("Нет правильного В."))
+@dp.message_handler(lambda message: message.text.startswith('Ответ ') or message.text.startswith("Готово В."))
 async def handle_answers(message: types.Message):
     reply, reply_markup = victorina_messaging(
         message.from_user.id, message.text)
@@ -83,31 +83,18 @@ async def get_telephone_number(message: types.Message, state: FSMContext):
                             "телеграм аккаунта")
 
 
-@dp.message_handler(commands=['admin108', 'stat', 'users'])
-async def admin(message: types.Message):
-    user_id = message.from_user.id
-    if user_id == ADMIN or user_id == ROOT:
-        # TODO сделать меню с другими командами
-        await message.answer("Меню администратора")
-    else:
-        await message.answer("Не понимаю эту команду или сообщение. Пришли что-то понятное. Например, /victorina")
-
-
 @dp.message_handler(commands=['delete'])  # TODO удалить функцию при запуске
 async def delete(message: types.Message):
     del_user_by_id(message.from_user.id)
     await message.reply("Вы удалили себя из базы данных",   reply_markup=btn.register_btn)
 
 
-@dp.message_handler(lambda message: message.text.startswith('/answers'))
-async def answers(message: types.Message):
-    await message.answer("Смотрим ответы")
-
-
 @dp.message_handler()
 async def echo(message: types.Message):
-    reply, reply_markup = victorina_messaging(message.from_user.id)
-    await message.answer(f"Не понял твое сообщение. Возвращаюсь к викторине",  reply_markup=None)
+    mes = "справка" if message.text.lower() == "справка" else None
+    reply, reply_markup = victorina_messaging(message.from_user.id, mes)
+    if not mes:
+        await message.answer(f"Не понял твое сообщение. Возвращаюсь к викторине",  reply_markup=None)
     await bot.send_message(message.from_user.id, reply,  reply_markup=reply_markup)
 
 

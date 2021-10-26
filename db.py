@@ -95,7 +95,8 @@ def check_db_exists():
     if table_exists:
         return
     _init_db()
-    import fill_db
+    from fill_db import fill_db
+    fill_db(test=True, test_file="questions_final.json")
 
 
 check_db_exists()

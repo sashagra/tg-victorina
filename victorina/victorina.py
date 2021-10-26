@@ -2,7 +2,7 @@ from questions import get_next_question, get_question_by_id, is_there_answer
 from users import get_user_by_id
 from buttons import register_btn, add_keyboard
 from answers import add_user_answer, get_user_answers, update_user_answer
-from victorina.questioning import question_message
+from victorina.questioning import question_message, get_info_link
 
 
 def victorina_messaging(user_id, message=None):
@@ -17,7 +17,12 @@ def victorina_messaging(user_id, message=None):
         question = get_next_question(user_id)
         return question_message(question)
 
-    if message.startswith("Нет правильного В."):
+    if message == "справка":
+        link = get_info_link(yesterday=True)
+        reply = f"Справка по вчерашнему блоку вопросов:\n{link}" if link else "Нет справки по вчерашнему блоку"
+        return reply, None
+
+    if message.startswith("Готово В."):
         return _handle_not_right_answer(user_id, message)
 
         # Отбработка обычного ответа
@@ -44,7 +49,7 @@ def _handle_simple_answer(user_id, message):
         old_answer = get_user_answers(user_id, {"question_id": question_id})
         if old_answer:
             if len(question["answers"]) - len(old_answer['answers'][:-1].split("_")) < 2:
-                return _handle_not_right_answer(user_id, f"Нет правильного В.{question_id}")
+                return _handle_not_right_answer(user_id, f"Готово В.{question_id}")
 
             answer = f"{old_answer['answers']}{answer_id}_"
             update_user_answer(old_answer["id"], answer)
@@ -64,7 +69,7 @@ def _handle_simple_answer(user_id, message):
 
 def _handle_not_right_answer(user_id, message):
     try:
-        question_id = int(message.split("Нет правильного В.")[1])
+        question_id = int(message.split("Готово В.")[1])
     except ValueError:
         return "Непонятный ответ", None
     if is_there_answer(user_id, question_id):
