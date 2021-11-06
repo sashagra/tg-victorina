@@ -1062,7 +1062,16 @@
     ]
   },
   {
-    "question": "Видео вопрос от ашрама Parama Coruna г.Москва\nhttps://youtu.be/QoWAKNnKRsI",
+    "question": "Видео-вопрос от Джагадиша прабху\nhttps://youtu.be/Fp2Gn4AaA9w",
+    "day": "2021-11-05",
+    "answers": [
+      {"text": "Повторять мантру", "is_right": 0},
+      {"text": "Желание", "is_right": 1},
+      {"text": "Следовать регулирующий принципам", "is_right": 0}
+    ]
+  },
+  {
+    "question": "Видео-вопрос от ашрама Parama Coruna г.Москва\nhttps://youtu.be/QoWAKNnKRsI",
     "day": "2021-11-05",
     "answers": [
       {"text": "Нужно придерживаться саттва-гуны", "is_right": 1},

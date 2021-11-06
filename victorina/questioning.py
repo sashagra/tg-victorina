@@ -5,15 +5,6 @@ from buttons import add_keyboard, ReplyKeyboardRemove, register_btn, inline as i
 
 markers = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"]
 
-block_answers = {
-    "2021-11-01": "https://telegra.ph/Otvety-i-spravka-po-pervomu-bloku-10-11",
-    "2021-11-02": "https://telegra.ph/Vtoroj-blok-viktoriny-Spravka-o-zhizni-SHrily-Prabhupady-10-14",
-    "2021-11-03": "https://telegra.ph/Vtoroj-blok-viktoriny-Spravka-o-zhizni-SHrily-Prabhupady-10-17",
-    "2021-11-04": "https://telegra.ph/CHetvyortyj-blok-viktoriny-Spravka-o-zhizni-SHrily-Prabhupady-10-17",
-    "2021-11-05": "https://telegra.ph/Pyatyj-blok-viktoriny-Spravka-o-zhizni-SHrily-Prabhupady-10-17",
-    "test": "https://telegra.ph/Eshche-test-09-28"
-}
-
 start_day = get_question_by_id(1)["question"]["day"]
 test_block_info = [
     "https://telegra.ph/Otvety-i-spravka-po-pervomu-bloku-10-11",
@@ -75,10 +66,8 @@ def _no_questions():
         reply = "На сегодня вопросов больше нет. Продолжение викторины завтра"
     else:
         reply = "Викторина завершена. Скоро будут результаты"
-    # TODO сделать справку даже если не ответил все вопросы
     try:
         info_link = get_info_link()
-        # info_link = block_answers[string_time['today']()]
     except KeyError:
-        info_link = block_answers['test']
+        info_link = ""
     return f"{reply}\n{info_link}", ReplyKeyboardRemove()

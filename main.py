@@ -2,7 +2,7 @@ import logging
 import register
 from db import update
 import buttons as btn
-from config import BOT_TOKEN, ROOT, ADMIN
+from config import BOT_TOKEN, PHONE_MASK
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.dispatcher import FSMContext
 from victorina.victorina import victorina_messaging
@@ -30,8 +30,6 @@ async def send_welcome(message: types.Message):
 @dp.callback_query_handler(lambda c: c.data == 'victorina')
 async def victorina(callback_query: types.CallbackQuery):
     user_id = callback_query.from_user.id
-    # message = callback_query.data if callback_query.data.startswith(
-    #     "victorina-answer") else None
     reply, reply_markup = victorina_messaging(user_id)
     await bot.answer_callback_query(callback_query.id)
     await bot.send_message(user_id, reply, reply_markup=reply_markup)
@@ -61,26 +59,27 @@ async def registration(callback_query: types.CallbackQuery):
                           last_name=dict(callback_query.from_user).get(
                               'last_name'),
                           login=dict(callback_query.from_user).get('username'))
-
-    keyboard = btn.request_phone("Отправить номер телефона ☎️")
-    await bot.send_message(user_id, "Чтобы завершить регистрацию нажми кнопку ниже, чтобы мы записали номер твоего "
-                                    "телефона. В викторине могут участвовать только жители Беларуси, поэтому нужен "
-                                    "белорусский номер телефона", reply_markup=keyboard)
+    if PHONE_MASK:
+        keyboard = btn.request_phone("Отправить номер телефона ☎️")
+        await bot.send_message(user_id, "Чтобы завершить регистрацию нажми кнопку ниже, чтобы мы записали номер твоего телефона.", reply_markup=keyboard)
+    else:
+        update('users', ('phone', "something"), user_id)
+        await bot.send_message(user_id, "Поздравляем! Ты зарегистрировался в викторине.")
+        reply, reply_markup = victorina_messaging(user_id)
+        await bot.send_message(user_id, reply, reply_markup=reply_markup)
 
 
 @dp.message_handler(content_types=types.ContentTypes.CONTACT)
 async def get_telephone_number(message: types.Message, state: FSMContext):
-    user_telephone_num = message.contact.phone_number
+    user_phone_number = message.contact.phone_number
     user_id = message.from_user.id
-    if user_telephone_num.startswith('+375') or user_telephone_num.startswith('375'):
-        update('users', ('phone', user_telephone_num), user_id)
+    if user_phone_number.startswith(PHONE_MASK) or user_phone_number.startswith(f'+{PHONE_MASK}'):
+        update('users', ('phone', user_phone_number), user_id)
         await message.reply("Поздравляем! Ты зарегистрировался в викторине.",   reply_markup=btn.ReplyKeyboardRemove())
         reply, reply_markup = victorina_messaging(user_id)
         await bot.send_message(user_id, reply, reply_markup=reply_markup)
     else:
-        await message.reply("Ты не можешь участвовать в викторине, потому что номер телефона не начинается с +375. "
-                            "Викторина только для участников из Беларуси. Попробуй зарегистрироваться с другого "
-                            "телеграм аккаунта")
+        await message.reply(f"Ты не можешь участвовать в викторине, потому что номер телефона не начинается с +{PHONE_MASK}. Попробуй зарегистрироваться с другого телеграм аккаунта")
 
 
 @dp.message_handler(commands=['delete'])  # TODO удалить функцию при запуске
