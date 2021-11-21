@@ -1,11 +1,12 @@
 import logging
-import datetime
-from config import BOT_TOKEN, ROOT
-from aiogram import Bot, Dispatcher, executor, types
-from register import registration, add_user_info
-from victorina import victorina_messenging
+import register
 from db import update
-from users import User, get_user_by_id, del_user_by_id
+import buttons as btn
+from config import BOT_TOKEN, PHONE_MASK
+from aiogram import Bot, Dispatcher, executor, types
+from aiogram.dispatcher import FSMContext
+from victorina.victorina import victorina_messaging
+from users import get_user_by_id, del_user_by_id
 
 logging.basicConfig(level=logging.INFO)
 
@@ -16,88 +17,84 @@ dp = Dispatcher(bot)
 @dp.message_handler(commands=['start', 'help'])
 async def send_welcome(message: types.Message):
     """
-    This handler will be called when user sends `/start` or `/help` command
+    Обрабатывает команды `/start` и `/help`
     """
-    user_id = message.from_user.id
-    exsisted_user = get_user_by_id(user_id)
-    if user_id == ROOT:
-        return await message.reply("Тыжадмин")
-
-    if exsisted_user:
-        if exsisted_user["login"] == "ADMIN":
-            return await message.reply("Уже зарегистрированы как админ. Можете добавить вопросы")
-
-        await message.reply("Уже зарегистрирован. Для начала викторины введи /victorina")
+    existed_user = get_user_by_id(message.from_user.id)
+    if existed_user:
+        await message.reply("Для начала викторины кликни кнопку ниже", reply_markup=btn.victorina_btn)
     else:
-        await message.reply("Чтобы зарегистрироваться в викторине набери или кликни команду /registration")
+        await message.reply("Добро пожаловать. Для участия в викторине необходимо зарегистрироваться")
+        await bot.send_message(message.from_user.id, "Для регистрации кликни кнопку ниже",   reply_markup=btn.register_btn)
 
 
-@dp.message_handler(commands=['registration', 'admin108'])
-async def accept_register(message: types.Message):
-    user_id = message.from_user.id
-    exsisted_user = get_user_by_id(user_id)
-    if exsisted_user:
-        if exsisted_user["login"] == "ADMIN":
-            return await message.reply("Уже зарегистрированы как админ. Можете добавить вопросы")
+@dp.callback_query_handler(lambda c: c.data == 'victorina')
+async def victorina(callback_query: types.CallbackQuery):
+    user_id = callback_query.from_user.id
+    reply, reply_markup = victorina_messaging(user_id)
+    await bot.answer_callback_query(callback_query.id)
+    await bot.send_message(user_id, reply, reply_markup=reply_markup)
 
-        return await message.reply("Уже зарегистрирован. Для начала викторины введи /victorina")
 
+@dp.message_handler(lambda message: message.text.startswith('Ответ ') or message.text.startswith("Готово В."))
+async def handle_answers(message: types.Message):
+    reply, reply_markup = victorina_messaging(
+        message.from_user.id, message.text)
+    await message.reply(reply, reply_markup=reply_markup)
+
+
+@dp.callback_query_handler(lambda c: c.data == 'registration')
+async def registration(callback_query: types.CallbackQuery):
+    """
+    Обрабатывает команду регистрации в викторине
+    """
+    user_id = callback_query.from_user.id
+    await bot.answer_callback_query(callback_query.id)
+    user = get_user_by_id(user_id)
+    if user and user["phone"]:
+        reply, reply_markup = victorina_messaging(user_id)
+        return await bot.send_message(user_id, reply, reply_markup=reply_markup)
+
+    register.registration(user_id,
+                          first_name=callback_query.from_user.first_name,
+                          last_name=dict(callback_query.from_user).get(
+                              'last_name'),
+                          login=dict(callback_query.from_user).get('username'))
+    if PHONE_MASK:
+        keyboard = btn.request_phone("Отправить номер телефона ☎️")
+        await bot.send_message(user_id, "Чтобы завершить регистрацию нажми кнопку ниже, чтобы мы записали номер твоего телефона.", reply_markup=keyboard)
     else:
-        if message.text.startswith('/admin108'):
-            login = "ADMIN"
-        else:
-            login = dict(message.from_user).get('username')
-
-        user = User(
-            user_id,
-            message.from_user.first_name,
-            dict(message.from_user).get('last_name'),
-            login=login).register_user()
-        if user:
-            if message.text.startswith('/admin108'):
-                return await message.reply("Зарегистрировал администратора. Вы можете добавлять вопросы")
-
-            return await message.reply("Чтобы поучаствовать в викторине также необходимо ввести свой номер телефона\nОтправь свой телефон, набрав сообщение такого вида +375-29-111-11-11\nНеобходимо, чтобы телефон начинался именно с '+375'. То есть в  викторине могут участвовать только жители Беларуси. Телефон нужен для связи с победителями")
-        else:
-            return await message.reply("Не удалось зарегистрировать. Попробуй снова / registration")
+        update('users', ('phone', "something"), user_id)
+        await bot.send_message(user_id, "Поздравляем! Ты зарегистрировался в викторине.")
+        reply, reply_markup = victorina_messaging(user_id)
+        await bot.send_message(user_id, reply, reply_markup=reply_markup)
 
 
-@dp.message_handler(commands=['victorina'])
-async def victorina(message: types.Message):
-    # TODO проверить есть ли уже телефон
+@dp.message_handler(content_types=types.ContentTypes.CONTACT)
+async def get_telephone_number(message: types.Message, state: FSMContext):
+    user_phone_number = message.contact.phone_number
     user_id = message.from_user.id
-    exsisted_user = get_user_by_id(user_id)
-    answer = victorina_messenging(exsisted_user)
-    await message.reply(answer)
+    if user_phone_number.startswith(PHONE_MASK) or user_phone_number.startswith(f'+{PHONE_MASK}'):
+        update('users', ('phone', user_phone_number), user_id)
+        await message.reply("Поздравляем! Ты зарегистрировался в викторине.",   reply_markup=btn.ReplyKeyboardRemove())
+        reply, reply_markup = victorina_messaging(user_id)
+        await bot.send_message(user_id, reply, reply_markup=reply_markup)
+    else:
+        await message.reply(f"Ты не можешь участвовать в викторине, потому что номер телефона не начинается с +{PHONE_MASK}. Попробуй зарегистрироваться с другого телеграм аккаунта")
 
 
-@dp.message_handler(commands=['delete'])
+@dp.message_handler(commands=['delete'])  # TODO удалить функцию при запуске
 async def delete(message: types.Message):
     del_user_by_id(message.from_user.id)
-    await message.reply("Вы удалили себя из базы данных. /registration для регистрации")
-
-
-@dp.message_handler(lambda message: message.text.startswith('+375'))
-async def add_info(message: types.Message):
-    try:
-        # TODO проверить есть ли уже телефон
-        update('users', ('phone', message.text), message.from_user.id)
-        await message.answer("Добавил телефон. /victorina для начала")
-    except:
-        await message.answer("Error")
-
-
-@dp.message_handler(lambda message: message.text.startswith('/otvet'))
-async def answer_handler(message: types.Message):
-    user_id = message.from_user.id
-    exsisted_user = get_user_by_id(user_id)
-    answer = victorina_messenging(exsisted_user, message.text)
-    await message.answer(answer)
+    await message.reply("Вы удалили себя из базы данных",   reply_markup=btn.register_btn)
 
 
 @dp.message_handler()
 async def echo(message: types.Message):
-    await message.answer("Не понимаю эту команду или сообщение. Пришли что-то понтное. Например, /victorina")
+    mes = "справка" if message.text.lower() == "справка" else None
+    reply, reply_markup = victorina_messaging(message.from_user.id, mes)
+    if not mes:
+        await message.answer(f"Не понял твое сообщение. Возвращаюсь к викторине",  reply_markup=None)
+    await bot.send_message(message.from_user.id, reply,  reply_markup=reply_markup)
 
 
 if __name__ == '__main__':

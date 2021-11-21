@@ -48,12 +48,11 @@ def fetchall(table: str, columns: List[str]) -> List[Tuple]:
     return _to_objects_list(rows, columns)
 
 
-def select_by_keys(table: str, columns: List[str],  *args: Dict):
+def select_by_keys(table: str, columns: List[str],  args: Dict):
     columns_joined = ", ".join(columns)
     search_strings = []
-    for arg in args:
-        for key in arg.keys():
-            search_strings.append(f"{key}='{arg[key]}'")
+    for key in args.keys():
+        search_strings.append(f"{key}='{args[key]}'")
 
     query = f"select {columns_joined} from {table} where {' and '.join(search_strings)}"
     cursor.execute(query)
@@ -63,6 +62,16 @@ def select_by_keys(table: str, columns: List[str],  *args: Dict):
 
 def delete(table: str, row_id: int) -> None:
     cursor.execute(f"delete from {table} where id={row_id}")
+    conn.commit()
+
+
+def delete_many(table: str, args: Dict):
+    search_strings = []
+    for key in args.keys():
+        search_strings.append(f"{key}='{args[key]}'")
+
+    query = f"delete from {table} where {' and '.join(search_strings)}"
+    cursor.execute(query)
     conn.commit()
 
 
@@ -86,6 +95,8 @@ def check_db_exists():
     if table_exists:
         return
     _init_db()
+    from fill_db import fill_db
+    fill_db(test=True, test_file="questions_final.json", shift=1)
 
 
 check_db_exists()

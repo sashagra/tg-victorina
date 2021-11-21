@@ -1,4 +1,4 @@
-from db import insert, select_by_keys, delete
+from db import insert, select_by_keys, delete, delete_many, fetchall
 
 
 def get_user_by_id(user_id):
@@ -8,8 +8,13 @@ def get_user_by_id(user_id):
         {'id': str(user_id)})
 
 
+def get_all_users():
+    return fetchall("users", ["id", "firstname", "lastname", "login", "phone"])
+
+
 def del_user_by_id(user_id):
-    return delete('users', user_id)
+    delete_many("user_answers", {"user_id": user_id})
+    delete('users', user_id)
 
 
 class User:
